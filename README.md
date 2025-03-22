@@ -12,7 +12,7 @@ A dashboard for tracking and visualizing cycling metrics and performance over ti
 
 1. Clone the repository:
 ```
-git clone https://github.com/YOUR_USERNAME/cycling-dashboard.git
+git clone https://github.com/tfitzgerald29/cycling-dashboard.git
 cd cycling-dashboard
 ```
 
@@ -34,6 +34,6 @@ python main.py
 
 - `main.py`: Main application file
 - `frontend/`: Front-end related code
-  - `cursorplotly.py`: Visualization components
+  - `dataviz.py`: Visualization components
 - `backend/`: Back-end related code
-  - `cursordataprocessing.py`: Data processing logic 
+  - `cyclingdataprocessor.py`: Data processing logic 
