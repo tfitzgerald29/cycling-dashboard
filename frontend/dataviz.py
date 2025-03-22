@@ -272,4 +272,63 @@ class CyclingDataVisualizer:
         fig.update_yaxes(title_text="Distance (miles)", secondary_y=False)
         fig.update_yaxes(title_text="Hours", secondary_y=True)
 
+        return fig
+
+    def create_monthly_tss_plot(self, monthly_data: pd.DataFrame) -> go.Figure:
+        """Create a bar chart showing Training Stress Score (TSS) by month"""
+        
+        # Check for different possible column names for TSS
+        tss_columns = ['training_stress_score', 'TSS', 'tss_total']
+        tss_column = None
+        
+        for col in tss_columns:
+            if col in monthly_data.columns:
+                tss_column = col
+                break
+                
+        if not tss_column:
+            print("Warning: No TSS column found in monthly data")
+            empty_fig = go.Figure()
+            empty_fig.add_annotation(
+                text="No Training Stress Score data available",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False
+            )
+            return empty_fig
+            
+        fig = go.Figure()
+        
+        # Add bar chart for monthly TSS
+        fig.add_trace(
+            go.Bar(
+                x=monthly_data['yrmo'].astype(str),
+                y=monthly_data[tss_column],
+                name="Monthly TSS",
+                text=[f"{int(val):,}" for val in monthly_data[tss_column]],
+                textposition='auto'
+            )
+        )
+        
+        # Update layout
+        fig.update_layout(
+            title="Monthly Training Stress Score",
+            title_x=0.5,
+            xaxis_title="Year and Month",
+            yaxis_title="Training Stress Score",
+            height=600,
+            legend=dict(
+                orientation="h",
+                yanchor="auto",
+                y=.99,
+                xanchor="auto",
+                x=.01
+            )
+        )
+        
+        # Add commas to y-axis tick labels
+        fig.update_yaxes(tickformat=",")
+        
         return fig 

@@ -128,7 +128,9 @@ app.layout = html.Div([
                         display_format='YYYY-MM-DD'
                     )
                 ], style={'margin': '20px 0'}),
-                html.Div(id='ctl-graph')
+                html.Div(id='ctl-graph'),
+                html.H2('Monthly Training Stress Score', style={'textAlign': 'center', 'marginTop': 30}),
+                html.Div(id='monthly-tss-graph')
             ])
         ])
     ])
@@ -303,7 +305,8 @@ def update_distance_time_plots(start_date, end_date):
 
 # Callback for Chronic Training Load tab
 @app.callback(
-    Output('ctl-graph', 'children'),
+    [Output('ctl-graph', 'children'),
+     Output('monthly-tss-graph', 'children')],
     [Input('ctl-date-range', 'start_date'),
      Input('ctl-date-range', 'end_date')]
 )
@@ -324,12 +327,25 @@ def update_ctl_graph(start_date, end_date):
                 y=0.5,
                 showarrow=False
             )
-            return dcc.Graph(figure=empty_fig)
+            return dcc.Graph(figure=empty_fig), dcc.Graph(figure=empty_fig)
         
-        # Create visualizations
+        # Create the CTL graph
         ctl_plot = visualizer.create_ctl_graph(merged_df, start_date, end_date)
         
-        return dcc.Graph(figure=ctl_plot)
+        # Create monthly data for TSS visualization
+        monthly_data = data_processor.get_monthly_data(merged_df)
+        
+        # Make sure we have the TSS data in the monthly aggregation
+        if 'training_stress_score' in merged_df.columns:
+            # Sum up TSS by month if it's not already included
+            if 'training_stress_score' not in monthly_data.columns:
+                tss_by_month = merged_df.groupby('yrmo')['training_stress_score'].sum().reset_index()
+                # Merge with the monthly_data DataFrame
+                monthly_data = monthly_data.merge(tss_by_month, on='yrmo', how='left')
+        
+        monthly_tss_plot = visualizer.create_monthly_tss_plot(monthly_data)
+        
+        return dcc.Graph(figure=ctl_plot), dcc.Graph(figure=monthly_tss_plot)
     except Exception as e:
         print(f"Error in update_ctl_graph: {str(e)}")
         empty_fig = go.Figure()
@@ -341,7 +357,7 @@ def update_ctl_graph(start_date, end_date):
             y=0.5,
             showarrow=False
         )
-        return dcc.Graph(figure=empty_fig)
+        return dcc.Graph(figure=empty_fig), dcc.Graph(figure=empty_fig)
 
 if __name__ == '__main__':
     # Only open browser in the main process, not the reloader process
