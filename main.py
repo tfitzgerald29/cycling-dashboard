@@ -8,6 +8,7 @@ from frontend.dataviz import CyclingDataVisualizer
 import webbrowser
 from threading import Timer
 import pandas as pd
+import os
 
 def open_browser():
     webbrowser.open('http://127.0.0.1:8050/')
@@ -343,5 +344,7 @@ def update_ctl_graph(start_date, end_date):
         return dcc.Graph(figure=empty_fig)
 
 if __name__ == '__main__':
-    Timer(1, open_browser).start()
+    # Only open browser in the main process, not the reloader process
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+        Timer(1, open_browser).start()
     app.run_server(debug=True, port=8050) 
