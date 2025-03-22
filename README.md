@@ -34,6 +34,6 @@ python main.py
 
 - `main.py`: Main application file
 - `frontend/`: Front-end related code
-  - `dataviz.py`: Visualization components
+  - `CyclingDataVisualizer.py`: Visualization components
 - `backend/`: Back-end related code
   - `cyclingdataprocessor.py`: Data processing logic 
