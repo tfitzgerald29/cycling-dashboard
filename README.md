@@ -36,4 +36,4 @@ python main.py
 - `frontend/`: Front-end related code
   - `CyclingDataVisualizer.py`: Visualization components
 - `backend/`: Back-end related code
-  - `cyclingdataprocessor.py`: Data processing logic 
+  - `CyclingDataProcessor.py`: Data processing logic 

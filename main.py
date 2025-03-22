@@ -3,7 +3,7 @@ from dash import html, dcc
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
-from backend.cyclingdataprocessor import CyclingDataProcessor
+from backend.CyclingDataProcessor import CyclingDataProcessor
 from frontend.CyclingDataVisualizer import CyclingDataVisualizer
 import webbrowser
 from threading import Timer
