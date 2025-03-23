@@ -33,7 +33,11 @@ else:
     print("No new files to process, using latest data file")
 
 # Create the base dataframe with all data
-all_data_df = data_processor.create_dataframe(existing_data)
+if new_data:
+    all_data_df = data_processor.create_dataframe(updated_data)
+    
+else:
+    all_data_df = data_processor.create_dataframe(existing_data)
 
 # Get date ranges from the data
 if not all_data_df.empty:
@@ -81,7 +85,7 @@ app.layout = html.Div([
             html.Div([
                 html.H2('Current Month Summary', style={'textAlign': 'center'}),
                 html.P(
-                    "Shows data for the current month, including weeks that overlap with previous or next month.", 
+                    "Shows data for the current month.", 
                     style={'textAlign': 'center', 'fontStyle': 'italic', 'color': '#666'}
                 ),
                 html.Div(id='recent-rides-stats', style={'textAlign': 'center', 'marginBottom': 20}),
@@ -124,7 +128,7 @@ app.layout = html.Div([
                     dcc.DatePickerRange(
                         id='ctl-date-range',
                         start_date=(datetime.now() - timedelta(days=365)).date(),
-                        end_date=datetime.now().date(),
+                        end_date=(datetime.now() + timedelta(days=45)).date(),
                         display_format='YYYY-MM-DD'
                     )
                 ], style={'margin': '20px 0'}),

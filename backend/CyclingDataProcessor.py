@@ -8,12 +8,16 @@ from garmin_fit_sdk import Decoder, Stream
 from dateutil import tz
 from pytz import timezone
 from typing import Dict, List, Union, Optional, Tuple
+import logging
 
 class CyclingDataProcessor:
     def __init__(self):
         self.download_path = "/Users/tylerfitzgerald/Downloads/"
         self.data_files_path = "/Users/tylerfitzgerald/Documents/activities/output/Data_files/"
-        
+        self.logs_path = "/Users/tylerfitzgerald/Documents/activities/output/logs/"
+        self.processed_files_path = os.path.join(self.data_files_path, "processed_files.json")
+
+
     def process_new_files(self) -> list:
         mega_list = []
         with os.scandir(self.download_path) as path:
@@ -76,22 +80,11 @@ class CyclingDataProcessor:
             raise ValueError(f"No JSON files found in {self.data_files_path}")
             
         paths = [os.path.join(self.data_files_path, basename) for basename in files]
-        current_file = max(paths, key=os.path.getctime)
         
-        # Try different encodings
-        encodings = ['utf-8', 'latin-1', 'ascii']
-        for encoding in encodings:
-            try:
-                with open(current_file, encoding=encoding) as f:
-                    return json.load(f)
-            except UnicodeDecodeError:
-                continue
-            except json.JSONDecodeError:
-                print(f"Warning: File could not be decoded as JSON with {encoding} encoding")
-                continue
-        
-        # If we get here, none of the encodings worked
-        raise ValueError(f"Could not read file {current_file} with any supported encoding")
+        currentfile = max(paths, key=os.path.getctime)
+        currentdatafile = os.path.basename(currentfile).replace("'","")
+        all_activities=json.load(open(f'''{self.data_files_path}/{currentdatafile}'''))
+        return all_activities
 
     def create_new_file(self, new_file: list, existing_file: list) -> list:
         seen = []
@@ -352,17 +345,7 @@ class CyclingDataProcessor:
         for i, row in weekly_summary.iterrows():
             start_month = row['week_start'].month
             end_month = row['week_end'].month
-            if start_month != end_month:
-                if start_month == current_month:
-                    weekly_summary.at[i, 'current_month_marker'] = '(overlaps with next month)'
-                elif end_month == current_month:
-                    weekly_summary.at[i, 'current_month_marker'] = '(overlaps with previous month)'
-                else:
-                    weekly_summary.at[i, 'current_month_marker'] = '(spans multiple months)'
-        
-        # Add current month indicator to week range
-        weekly_summary['week_range'] = weekly_summary['week_range'] + ' ' + weekly_summary['current_month_marker']
-        
+                
         # Sort by week start date
         weekly_summary = weekly_summary.sort_values('week_start')
         
@@ -447,4 +430,4 @@ class CyclingDataProcessor:
         # Format week_start as 'Mon, Jan 1'
         weekly_totals['week_start'] = weekly_totals['week_start'].dt.strftime('%a, %b %d, %Y')
         
-        return weekly_totals 
+        return weekly_totals
