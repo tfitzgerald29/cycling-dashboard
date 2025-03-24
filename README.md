@@ -13,27 +13,4 @@ A dashboard for tracking and visualizing cycling metrics and performance over ti
 1. Clone the repository:
 ```
 git clone https://github.com/tfitzgerald29/cycling-dashboard.git
-cd cycling-dashboard
 ```
-
-2. Install the required dependencies:
-```
-pip install -r requirements.txt
-```
-
-3. Run the dashboard:
-```
-./run_dashboard.sh
-```
-Or manually:
-```
-python main.py
-```
-
-## Project Structure
-
-- `main.py`: Main application file
-- `frontend/`: Front-end related code
-  - `CyclingDataVisualizer.py`: Visualization components
-- `backend/`: Back-end related code
-  - `CyclingDataProcessor.py`: Data processing logic 
