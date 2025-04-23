@@ -126,10 +126,6 @@ class CyclingDataProcessor:
         return all_activities
 
     def create_new_file(self, new_file: list, existing_file: list) -> list:
-        # Handle case where existing_file might be a dictionary
-        if isinstance(existing_file, dict):
-            existing_file = [existing_file]
-            
         seen = []
         for i in new_file:
             existing_file.append(i)
@@ -222,8 +218,8 @@ class CyclingDataProcessor:
 
         return daily_df
 
-    def get_recent_rides_data(self, merged_df: pd.DataFrame):
-        df1 = merged_df[merged_df["week_num"] >= np.max(merged_df["week_num"] - 4)]
+    def weekly_summary_rides(self, merged_df: pd.DataFrame):
+        df1 = merged_df[merged_df["week_num"] >= np.max(merged_df["week_num"] - 5)]
         recent_rides = (
             df1.groupby(["week_num"])
             .agg(
@@ -476,16 +472,6 @@ class CyclingDataProcessor:
     def get_weekly_totals(
         self, merged_df: pd.DataFrame, num_weeks: int = None
     ) -> pd.DataFrame:
-        """
-        Calculate weekly distance and time totals with weeks starting on Monday.
-
-        Args:
-            merged_df: The merged DataFrame with all ride data
-            num_weeks: Number of weeks to include (default: None = all weeks)
-
-        Returns:
-            DataFrame with weekly totals
-        """
         # Filter for rides with data
         rides_df = merged_df[merged_df["RidingTime"].notnull()].copy()
 

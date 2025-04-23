@@ -111,8 +111,7 @@ class CyclingDataVisualizer:
         return fig_tbl
 
     def create_daily_distance_plot(self, daily_data: pd.DataFrame) -> go.Figure:
-        # Limit the number of days to avoid performance issues
-        max_days = 365
+        max_days = 1000
         if len(daily_data) > max_days:
             print(f"Daily data has {len(daily_data)} days, limiting to last {max_days}")
             daily_data = daily_data.tail(max_days)

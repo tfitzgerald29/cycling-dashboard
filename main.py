@@ -12,6 +12,7 @@ from dash.dependencies import Input, Output
 
 from backend.CyclingDataProcessor import CyclingDataProcessor
 from frontend.CyclingDataVisualizer import CyclingDataVisualizer
+from frontend.layout import create_app_layout
 
 
 def open_browser():
@@ -30,7 +31,6 @@ print("Processing new files...")
 data_processor.unzipfiles()
 new_data = data_processor.process_new_files()
 existing_data = data_processor.read_existing_files()
-
 if new_data:
     updated_data = data_processor.create_new_file(new_data, existing_data)
     data_processor.write_out_file(updated_data)
@@ -71,138 +71,27 @@ recent_merged_df = data_processor.merge_dataframes(recent_date_range, all_data_d
 full_merged_df = data_processor.merge_dataframes(full_date_range, all_data_df)
 
 # Create the specific dataframes for visualizations
-recent_rides = data_processor.get_recent_rides_data(recent_merged_df)
+recent_rides = data_processor.weekly_summary_rides(recent_merged_df)
 last14rides = data_processor.last14rides(recent_merged_df)
 latest_ride_metrics = data_processor.get_latest_ride_metrics(full_merged_df)
-weekly_totals = data_processor.get_weekly_totals(full_merged_df)
 
 # Get current month weekly summaries
 current_month_weekly_summary = data_processor.get_current_month_weekly_summary(
     recent_merged_df
 )
 
-# Define the layout
-app.layout = html.Div(
-    [
-        html.H1("Cycling Dashboard", style={"textAlign": "center", "marginBottom": 30}),
-        dcc.Tabs(
-            id="tabs",
-            value="recent-rides",
-            children=[
-                # Recent Rides Tab
-                dcc.Tab(
-                    label="Recent Rides",
-                    value="recent-rides",
-                    children=[
-                        html.Div(
-                            [
-                                html.Div(
-                                    id="recent-rides-stats",
-                                    style={"textAlign": "center", "marginBottom": 20},
-                                ),
-                                html.H3(
-                                    "Latest Ride Details",
-                                    style={"textAlign": "center", "marginTop": 20},
-                                ),
-                                html.H4(
-                                    "last-14-rides",
-                                    style={"textAlign": "center", "marginTop": 20},
-                                ),
-                                html.Div(id="latest-ride-metrics"),
-                                html.Div(id="recent-rides-graph"),
-                                html.Div(id="recent-rides-table"),
-                                html.Div(id="last-14-rides"),
-                            ]
-                        )
-                    ],
-                ),
-                # Distance and Time Tab
-                dcc.Tab(
-                    label="Distance and Time",
-                    value="distance-time",
-                    children=[
-                        html.Div(
-                            [
-                                html.H2(
-                                    "Annual Distance and Time",
-                                    style={"textAlign": "center"},
-                                ),
-                                html.Div(id="annual-distance-plot"),
-                                html.H2(
-                                    "Monthly Distance and Time",
-                                    style={"textAlign": "center", "marginTop": 20},
-                                ),
-                                html.Div(id="monthly-distance-plot"),
-                                html.H2(
-                                    "Weekly Distance and Time",
-                                    style={"textAlign": "center", "marginTop": 20},
-                                ),
-                                html.Div(id="weekly-totals-plot"),
-                                html.Div(
-                                    [
-                                        html.Label("Date Range:"),
-                                        dcc.DatePickerRange(
-                                            id="distance-date-range",
-                                            start_date=(
-                                                datetime.now() - timedelta(days=365)
-                                            ).date(),
-                                            end_date=datetime.now().date(),
-                                            display_format="YYYY-MM-DD",
-                                        ),
-                                    ],
-                                    style={"margin": "20px 0"},
-                                ),
-                            ]
-                        )
-                    ],
-                ),
-                # Chronic Training Load Tab
-                dcc.Tab(
-                    label="Chronic Training Load",
-                    value="ctl",
-                    children=[
-                        html.Div(
-                            [
-                                html.H2("CTL Graph", style={"textAlign": "center"}),
-                                html.Div(
-                                    [
-                                        html.Label("Date Range:"),
-                                        dcc.DatePickerRange(
-                                            id="ctl-date-range",
-                                            start_date=(
-                                                datetime.now() - timedelta(days=365)
-                                            ).date(),
-                                            end_date=(
-                                                datetime.now() + timedelta(days=45)
-                                            ).date(),
-                                            display_format="YYYY-MM-DD",
-                                        ),
-                                    ],
-                                    style={"margin": "20px 0"},
-                                ),
-                                html.Div(id="ctl-graph"),
-                                html.H2(
-                                    "Monthly Training Stress Score",
-                                    style={"textAlign": "center", "marginTop": 30},
-                                ),
-                                html.Div(id="monthly-tss-graph"),
-                            ]
-                        )
-                    ],
-                ),
-            ],
-        ),
-    ]
-)
+# Set the app layout using the layout class
+layout_creator = create_app_layout()
+app.layout = layout_creator.create_layout()
 
 
 # Callback for Recent Rides tab
 @app.callback(
     [
-        Output("recent-rides-table", "children"),
+        Output("monthly-totals", "children"),
+        Output("lastride", "children"),
+        Output("weekly-summary", "children"),
         Output("last-14-rides", "children"),
-        Output("recent-rides-graph", "children"),
-        Output("latest-ride-metrics", "children"),
     ],
     Input("tabs", "value"),
 )
@@ -212,20 +101,18 @@ def update_recent_rides(tab):
     )
 
     # Create visualizations using pre-processed data
-    fig_table = visualizer.create_recent_rides_visualizations(recent_rides)
+    weeklysummary = visualizer.create_recent_rides_visualizations(recent_rides)
     last14rides_vis = visualizer.create_recent_rides_visualizations(last14rides)
 
     # Get the month name
     current_month_name = datetime.now().strftime("%B %Y")
 
+    # Create monthly totals summary
     monthly_totals = html.Div(
         [
-            html.H2(
-                f"Monthly Totals for {current_month_name}",
-                style={"textAlign": "center"},
-            ),
             html.P(
                 [
+                    f"{current_month_name} | ",
                     f"Total Distance: {current_month_weekly_summary['Distance'].sum():.1f} miles | ",
                     f"Total Hours: {current_month_weekly_summary['Hours'].sum():.1f} | ",
                     f"Total Work: {current_month_weekly_summary['Kjs'].sum():,.0f} Kj | ",
@@ -233,14 +120,11 @@ def update_recent_rides(tab):
                 ],
                 style={"textAlign": "center"},
             ),
-            html.H4("Weekly Breakdown", style={"textAlign": "center"}),
         ]
     )
 
-    # Create a recent rides summary for the recent-rides-stats component
-
     # Create latest ride metrics table
-    latest_metrics_fig = go.Figure(
+    lastride_fig = go.Figure(
         data=[
             go.Table(
                 header=dict(
@@ -255,10 +139,10 @@ def update_recent_rides(tab):
     )
 
     return (
-        dcc.Graph(figure=fig_table),
-        dcc.Graph(figure=last14rides_vis),
         monthly_totals,
-        dcc.Graph(figure=latest_metrics_fig),
+        dcc.Graph(figure=lastride_fig),
+        dcc.Graph(figure=weeklysummary),
+        dcc.Graph(figure=last14rides_vis),
     )
 
 
